@@ -1,0 +1,3 @@
+# -*- mode: org -*-
+
+Writing the queries of the [[http://tpc.org/tpch/default5.asp][TPC-H]] benchmark using [[https://github.com/EvgSkv/logica][Logica]].
