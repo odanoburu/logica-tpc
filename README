@@ -1,3 +1,11 @@
 # -*- mode: org -*-
 
 Writing the queries of the [[http://tpc.org/tpch/default5.asp][TPC-H]] benchmark using [[https://github.com/EvgSkv/logica][Logica]].
+
+The =queries= directory has the TPC-H queries. Those ending in =.sql=
+extension are the original queries, those ending in =.l= are the
+Logica equivalents.
+
+To compile a Logica query to SQL, install Logica and run:
+
+: logica <query-file> print <query predicate>
