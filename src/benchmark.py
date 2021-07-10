@@ -1,4 +1,7 @@
 import timeit
+from pathlib import Path
+import sys
+import csv
 
 BACKENDS = {}
 
@@ -31,18 +34,34 @@ def benchmark(backend,
         times = {}
         for qname, (q_a, q_b) in queries.items():
             if check_equivalent:
-                res_a = backend['query'](backend_state, q_a)
-                res_b = backend['query'](backend_state, q_b)
-                assert (res_a.fetchall() == res_b.fetchall())
-            times_a = timeit.repeat(lambda: all(backend['query']
-                                                (backend_state, q_a)),
-                                    repeat=number,
-                                    number=1)
-            times_b = timeit.repeat(lambda: all(backend['query']
-                                                (backend_state, q_b)),
-                                    repeat=number,
-                                    number=1)
-            times[qname] = (times_a, times_b)
+                a = backend['query'](backend_state, q_a)
+                b = backend['query'](backend_state, q_b)
+                # FIXME: shouldn't use assert because we don't want
+                # this assertion to be turned off when user
+                # requested it
+                res_a = a.fetchall()
+                res_b = b.fetchall()
+                if res_a != res_b:
+                    print(
+                        "Query results for {} are not the same".format(qname),
+                        file=sys.stderr)
+                    import tempfile
+                    tmpdir = Path(tempfile.gettempdir())
+                    for ix, res in enumerate([res_a, res_b]):
+                        p = tmpdir.joinpath("{}-{}.tsv".format(qname, ix))
+                        with p.resolve().open('w') as outfile:
+                            print("Writing query output to", outfile.name, file=sys.stderr)
+                            write_csv(outfile, res)
+                else:
+                    times_a = timeit.repeat(lambda: all(backend['query']
+                                                        (backend_state, q_a)),
+                                            repeat=number,
+                                            number=1)
+                    times_b = timeit.repeat(lambda: all(backend['query']
+                                                        (backend_state, q_b)),
+                                            repeat=number,
+                                            number=1)
+                    times[qname] = (times_a, times_b)
     finally:
         # end DB connection
         assert (backend['end'](backend_state))
@@ -50,7 +69,6 @@ def benchmark(backend,
 
 
 def gather_queries(dir_a, dir_b, query_names=None):
-    from pathlib import Path
     dir_a = Path(dir_a)
     dir_b = Path(dir_b)
     if not query_names:
@@ -67,23 +85,28 @@ def gather_queries(dir_a, dir_b, query_names=None):
     return queries
 
 
-def to_csv(times, dirA='A', dirB='B', output=None):
-    import csv
+def write_csv(csvout, rowgenerator, header=None):
+    writer = csv.writer(csvout, delimiter='\t')
+    if header is not None:
+        writer.writerow(header)
+    for row in rowgenerator:
+        writer.writerow(row)
 
-    def write_csv(csvout):
-        writer = csv.writer(csvout, delimiter='\t')
-        writer.writerow(["query", "dir", "time"])
+
+def to_csv(times, dirA='A', dirB='B', output=None):
+    def rowgenerator():
         for qname, dirTimings in times.items():
             for dirname, timings in zip([dirA, dirB], dirTimings):
                 for timing in timings:
-                    writer.writerow([qname, dirname, timing])
+                    yield [qname, dirname, timing]
 
+    f = lambda outfile: write_csv(
+        outfile, rowgenerator(), header=["query", "dir", "time"])
     if output is None:
-        import sys
-        write_csv(sys.stdout)
+        f(sys.stdout)
     else:
         with open(output, 'w', newline='') as csvfile:
-            write_csv(csvfile)
+            f(csvfile)
 
 
 def sqlite3_init(address, port):
@@ -147,6 +170,11 @@ if __name__ == "__main__":
                         type=int,
                         default=10,
                         help='Run each query N times')
+    parser.add_argument('-o',
+                        '--output',
+                        metavar='FILE',
+                        type=str,
+                        help='Write output to FILE')
     parser.add_argument(
         '--check-equivalent',
         metavar='CHECK_EQUIVALENT',
@@ -178,6 +206,6 @@ if __name__ == "__main__":
                         queries,
                         number=args.number,
                         check_equivalent=args.check_equivalent)
-    to_csv(timings, dirA, dirB)
+    to_csv(timings, dirA, dirB, args.output)
 
     # python benchmark.py --check-equivalent --db-address ../TPC-H.db --dir-a ../queries/ --dir-b ../gen-queries/ -d sqlite3 q-02.sql

@@ -1,12 +1,17 @@
+## BUILDING DB for SQLite
 # some stuff stolen from https://github.com/lovasoa/TPCH-sqlite
 SCALE_FACTOR?=1
 TABLES = customer lineitem nation orders partsupp part region supplier
 TABLE_FILES = $(foreach table, $(TABLES), tpch-dbgen/$(table).tbl)
-QUERIES = 02
+
+## Building SQL queries from Logica code
+QUERIES = 02 13
 LOGICA_DIR=logica
 QUERY_DIR=logica-sql
 QUERY_FILES = $(foreach query, $(QUERIES), $(QUERY_DIR)/q-$(query).sql)
 LOGICA=/home/odanoburu/sites/logica/logica
+
+## TODO: benchmarking variables here
 
 TPC-H.db: $(TABLE_FILES)
 	./create_db.sh $(TABLES)
@@ -18,9 +23,9 @@ $(TABLE_FILES): tpch-dbgen/dbgen
 tpch-dbgen/dbgen: tpch-dbgen/makefile
 	cd tpch-dbgen && $(MAKE)
 
-$(QUERY_FILES):
+$(QUERY_DIR)/%.sql: $(LOGICA_DIR)/%.l
 	mkdir -p $(QUERY_DIR)
-	$(foreach query, $(QUERIES), $(LOGICA) $(LOGICA_DIR)/q-$(query).l print Query > $(QUERY_DIR)/q-$(query).sql)
+	$(LOGICA) $^ print Query > $@
 
 queries: $(QUERY_FILES)
 

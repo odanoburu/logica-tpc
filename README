@@ -24,7 +24,9 @@ Logica equivalents.
   2. Add a corresponding Logica file (with =.l= extension) to the
      =logica= directory. It's top-level predicate should be named
      =Query= for we to generate its SQL output automatically.
-  3. Follow the steps for reproducing the benchmark in this README.
+  3. Add the query to the Makefile under the =QUERIES= variable when
+     it is ready to be benchmarked.
+  4. Follow the steps for reproducing the benchmark in this README.
 
 * Benchmarking manually
 ** Logica
