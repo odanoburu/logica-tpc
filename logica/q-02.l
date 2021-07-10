@@ -1,6 +1,7 @@
 @Engine("sqlite");
 
-MinimumCostSupplier(s_acctbal:, s_name:, n_name:, p_partkey:, p_mfgr:,
+# minimum cost supplier
+Query(s_acctbal:, s_name:, n_name:, p_partkey:, p_mfgr:,
                     s_address:, s_phone:, s_comment:) :-
   part(p_partkey:, p_mfgr:, p_size:, p_type:),
   partsupp(ps_partkey:, ps_suppkey:, ps_supplycost:),
@@ -17,7 +18,7 @@ MinimumCostSupplier(s_acctbal:, s_name:, n_name:, p_partkey:, p_mfgr:,
   r_name == "EUROPE", # QDB
   MinimumSupplyCost(p_partkey:, min_supplycost:),
   ps_supplycost == min_supplycost;
-@OrderBy(MinimumCostSupplier,
+@OrderBy(Query,
          "s_acctbal desc", "n_name", "s_name", "p_partkey");
 
 MinimumSupplyCost(p_partkey:, min_supplycost? Min=ps_supplycost) distinct :-

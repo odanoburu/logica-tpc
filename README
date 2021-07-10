@@ -6,6 +6,44 @@ The =queries= directory has the TPC-H queries. Those ending in =.sql=
 extension are the original queries, those ending in =.l= are the
 Logica equivalents.
 
-To compile a Logica query to SQL, install Logica and run:
+* Reproducing
 
-: logica <query-file> print <query predicate>
+  1. Download the [[http://tpc.org/tpc_documents_current_versions/current_specifications5.asp][TPC-H tools]] archive and unpack it in the root
+     directory of this repository, or else generate or download the
+     data some other way.
+  2. To benchmark Logica with =sqlite=, run =make TPC-H.db= to
+     generate the =sqlite= database file.
+  3. Run =make -B queries benchmark= to generate the SQL queries from
+     the Logica files and then benchmark those against the original
+     SQL queries from the TPC-H benchmark, generating
+     =build/benchmark.csv= with the data.
+
+* Adding a new query
+
+  1. Add the original SQL file to the =sql= directory.
+  2. Add a corresponding Logica file (with =.l= extension) to the
+     =logica= directory. It's top-level predicate should be named
+     =Query= for we to generate its SQL output automatically.
+  3. Follow the steps for reproducing the benchmark in this README.
+
+* Benchmarking manually
+** Logica
+  To compile a Logica query to SQL, install Logica (see its [[https://github.com/EvgSkv/logica][repository]]
+  for that) and run:
+
+  : logica <query-file> print <query predicate>
+
+  You can also use Logica to run queries directly from the command
+  line, or as a Python library.
+
+  By default, the main query predicate in this project should be named
+  =Query=, so that we can build all Logica queries automatically
+  with=make=.
+
+** Benchmarking code
+  To benchmark the Logica-generated queries against the original SQL
+  ones, you use the Python module at =src/benchmark.py=. You can try:
+
+  : python src/benchmark.py --check-equivalent --db-address ../TPC-H.db --dir-a ../queries/ --dir-b ../gen-queries/ -d sqlite3 q-02.sql
+
+  To see more options, run =python benchmark.py --help=.

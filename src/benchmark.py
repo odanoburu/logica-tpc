@@ -33,13 +33,13 @@ def benchmark(backend,
             if check_equivalent:
                 res_a = backend['query'](backend_state, q_a)
                 res_b = backend['query'](backend_state, q_b)
-                assert(res_a.fetchall() == res_b.fetchall())
+                assert (res_a.fetchall() == res_b.fetchall())
             times_a = timeit.repeat(lambda: all(backend['query']
-                                             (backend_state, q_a)),
+                                                (backend_state, q_a)),
                                     repeat=number,
                                     number=1)
             times_b = timeit.repeat(lambda: all(backend['query']
-                                             (backend_state, q_b)),
+                                                (backend_state, q_b)),
                                     repeat=number,
                                     number=1)
             times[qname] = (times_a, times_b)
@@ -65,6 +65,25 @@ def gather_queries(dir_a, dir_b, query_names=None):
             query_b = f.read()
         queries[q_name] = (query_a, query_b)
     return queries
+
+
+def to_csv(times, dirA='A', dirB='B', output=None):
+    import csv
+
+    def write_csv(csvout):
+        writer = csv.writer(csvout, delimiter='\t')
+        writer.writerow(["query", "dir", "time"])
+        for qname, dirTimings in times.items():
+            for dirname, timings in zip([dirA, dirB], dirTimings):
+                for timing in timings:
+                    writer.writerow([qname, dirname, timing])
+
+    if output is None:
+        import sys
+        write_csv(sys.stdout)
+    else:
+        with open(output, 'w', newline='') as csvfile:
+            write_csv(csvfile)
 
 
 def sqlite3_init(address, port):
@@ -150,15 +169,15 @@ if __name__ == "__main__":
     print_info(args)
     backend = BACKENDS.get(args.database)
     assert (backend is not None)
-    queries = gather_queries(args.dir_a, args.dir_b,
-                             args.queries)  # dict(str, (str, str))
+    dirA, dirB = args.dir_a, args.dir_b
+    queries = gather_queries(dirA, dirB, args.queries)  # dict(str, (str, str))
     print_info(queries)
-    res = benchmark(backend,
-                    args.db_address,
-                    args.db_port,
-                    queries,
-                    number=args.number,
-                    check_equivalent=args.check_equivalent)
-    print(res)
+    timings = benchmark(backend,
+                        args.db_address,
+                        args.db_port,
+                        queries,
+                        number=args.number,
+                        check_equivalent=args.check_equivalent)
+    to_csv(timings, dirA, dirB)
 
     # python benchmark.py --check-equivalent --db-address ../TPC-H.db --dir-a ../queries/ --dir-b ../gen-queries/ -d sqlite3 q-02.sql
