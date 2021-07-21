@@ -133,7 +133,7 @@ register_backend('sqlite3',
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description='Benchmark SQL queries.',
+    parser = argparse.ArgumentParser(description='Benchmark two sets of SQL queries against each other.',
                                      allow_abbrev=False,
                                      exit_on_error=True)
     parser.add_argument('-d',

@@ -5,11 +5,13 @@ TABLES = customer lineitem nation orders partsupp part region supplier
 TABLE_FILES = $(foreach table, $(TABLES), tpch-dbgen/$(table).tbl)
 
 ## Building SQL queries from Logica code
-QUERIES = 02 13
+QUERIES = 01 02 03 04 05 08 13
 LOGICA_DIR=logica
 QUERY_DIR=logica-sql
-QUERY_FILES = $(foreach query, $(QUERIES), $(QUERY_DIR)/q-$(query).sql)
+QUERY_BASENAMES = $(foreach query, $(QUERIES), q-$(query).sql)
+QUERY_FILES = $(foreach query_basename, $(QUERY_BASENAMES), $(QUERY_DIR)/$(query_basename))
 LOGICA=/home/odanoburu/sites/logica/logica
+N_TIMES=1 # times to run each query
 
 ## TODO: benchmarking variables here
 
@@ -29,9 +31,9 @@ $(QUERY_DIR)/%.sql: $(LOGICA_DIR)/%.l
 
 queries: $(QUERY_FILES)
 
-benchmark:
+benchmark: queries
 	mkdir -p build
-	python3 src/benchmark.py --check-equivalent --db-address TPC-H.db --dir-a logica-sql --dir-b sql -d sqlite3 > build/benchmark.csv
+	python3 src/benchmark.py --check-equivalent --db-address TPC-H.db --dir-a logica-sql --dir-b sql -d sqlite3 > build/benchmark.csv -n $(N_TIMES) $(QUERY_BASENAMES)
 
 clean:
 	rm -rf TPC-H.db $(TABLE_FILES) tpch-dbgen/dbgen

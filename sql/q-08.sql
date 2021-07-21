@@ -5,8 +5,9 @@ select o_year,
                else 0
            end) / sum(volume) as mkt_share
 from
-  (select extract(year
-                  from o_orderdate) as o_year,
+  (select strftime('%Y', o_orderdate) -- SQLite
+          -- extract(year from o_orderdate) -- original query
+	  as o_year,
           l_extendedprice * (1-l_discount) as volume,
           n2.n_name as nation
    from part,
@@ -25,7 +26,8 @@ from
      and n1.n_regionkey = r_regionkey
      and r_name = 'AMERICA' -- QDB
      and s_nationkey = n2.n_nationkey
-     and o_orderdate between date '1995-01-01' and date '1996-12-31'
-     and p_type = 'ECONOMY ANODIZED STEEL' ) as all_nations
+     and o_orderdate between date('1995-01-01') and date('1996-12-31')
+     and p_type = 'ECONOMY ANODIZED STEEL')
+     as all_nations
 group by o_year
 order by o_year;

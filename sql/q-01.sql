@@ -9,7 +9,9 @@ select l_returnflag,
        avg(l_discount) as avg_disc,
        count(*) as count_order
 from lineitem
-where l_shipdate <= date '1998-12-01' - interval '[DELTA]' day (3)
+where l_shipdate <= -- fix for sqlite
+                    date('1998-12-01', '-3 days')
+		    -- original date '1998-12-01' - interval '[DELTA]' day (3)
 group by l_returnflag,
          l_linestatus
 order by l_returnflag,
