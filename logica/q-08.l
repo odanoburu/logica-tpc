@@ -1,5 +1,7 @@
 @Engine("sqlite");
 
+import sqlite.DateYear;
+
 NationYearVolume(o_year:, volume:, nation: n_name) :-
   part(p_partkey:, p_type:),
   supplier(s_suppkey:, s_nationkey:),
@@ -23,9 +25,6 @@ NationYearVolume(o_year:, volume:, nation: n_name) :-
   p_type == "ECONOMY ANODIZED STEEL",
   o_year == DateYear(o_orderdate),  # FIXME: for sqlite
   volume == l_extendedprice * (1 - l_discount);
-
-# FIXME: work for non-sqlite engines
-DateYear(date) = SqlExpr("strftime('%Y', {d})", {d: date});
 
 BrazilShare(x) = Sum(if x.nation == "BRAZIL" then x.volume else 0) / Sum(x.volume);
 

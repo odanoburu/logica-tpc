@@ -5,7 +5,7 @@ TABLES = customer lineitem nation orders partsupp part region supplier
 TABLE_FILES = $(foreach table, $(TABLES), tpch-dbgen/$(table).tbl)
 
 ## Building SQL queries from Logica code
-QUERIES = 01 02 03 04 05 06 08 13
+QUERIES = 01 02 03 04 05 06 07 08 13
 LOGICA_DIR=logica
 QUERY_DIR=logica-sql
 QUERY_BASENAMES = $(foreach query, $(QUERIES), q-$(query).sql)
