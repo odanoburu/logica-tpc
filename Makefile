@@ -27,7 +27,7 @@ tpch-dbgen/dbgen: tpch-dbgen/makefile
 
 $(QUERY_DIR)/%.sql: $(LOGICA_DIR)/%.l
 	mkdir -p $(QUERY_DIR)
-	$(LOGICA) $^ print Query > $@
+	LOGICAPATH=$(LOGICA_DIR) $(LOGICA) $^ print Query > $@
 
 queries: $(QUERY_FILES)
 
