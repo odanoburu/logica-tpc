@@ -33,6 +33,7 @@ def benchmark(backend,
     try:
         times = {}
         for qname, (q_a, q_b) in queries.items():
+            print("Running query {}".format(qname), file=sys.stderr)
             if check_equivalent:
                 a = backend['query'](backend_state, q_a)
                 b = backend['query'](backend_state, q_b)
@@ -134,8 +135,7 @@ register_backend('sqlite3',
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='Benchmark two sets of SQL queries against each other.',
-                                     allow_abbrev=False,
-                                     exit_on_error=True)
+                                     allow_abbrev=False)
     parser.add_argument('-d',
                         '--database',
                         metavar='DB',
