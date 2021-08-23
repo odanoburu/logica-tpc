@@ -6,7 +6,7 @@
 #          l_shipinstruct:"don't open", l_shipmode:"plane",
 #          l_comment:"ooh nice");
 
-@OrderBy(Query, "l_returnflag, l_linestatus");
+@OrderBy(Query, "l_returnflag", "l_linestatus");
 Query(l_returnflag:, l_linestatus:,
       sum_qty? += l_quantity,
       sum_base_price? += l_extendedprice,

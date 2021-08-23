@@ -11,6 +11,11 @@ Logica equivalents.
   1. Download the [[http://tpc.org/tpc_documents_current_versions/current_specifications5.asp][TPC-H tools]] archive and unpack it in the root
      directory of this repository, or else generate or download the
      data some other way.
+     - The =tpch-dbgen= directory should be at root directory of this
+       repository
+     - You must make a copy of the =makefile.suite= file there to a
+       file named =makefile=, and tweak it for your platform and
+       database choice.
   2. To benchmark Logica with =sqlite=, run =make TPC-H.db= to
      generate the =sqlite= database file.
   3. Run =make -B queries benchmark= to generate the SQL queries from

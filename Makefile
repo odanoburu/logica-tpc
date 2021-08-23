@@ -33,7 +33,7 @@ queries: $(QUERY_FILES)
 
 benchmark: queries
 	mkdir -p build
-	python3 src/benchmark.py --check-equivalent --db-address TPC-H.db --dir-a logica-sql --dir-b sql -d sqlite3 > build/benchmark.csv -n $(N_TIMES) $(QUERY_BASENAMES)
+	python3 src/benchmark.py --check-equivalent --db-address TPC-H.db --dir-a logica-sql --dir-b sql -d sqlite3 >> build/benchmark.csv -n $(N_TIMES) $(QUERY_BASENAMES)
 
 clean:
 	rm -rf TPC-H.db $(TABLE_FILES) tpch-dbgen/dbgen
