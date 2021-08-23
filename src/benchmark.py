@@ -5,7 +5,7 @@ import csv
 
 BACKENDS = {}
 
-VERBOSE = False
+VERBOSE = True
 
 
 def print_info(*args, **kwargs):
@@ -33,13 +33,10 @@ def benchmark(backend,
     try:
         times = {}
         for qname, (q_a, q_b) in queries.items():
-            print("Running query {}".format(qname), file=sys.stderr)
+            print_info("Running query {}".format(qname), file=sys.stderr)
             if check_equivalent:
                 a = backend['query'](backend_state, q_a)
                 b = backend['query'](backend_state, q_b)
-                # FIXME: shouldn't use assert because we don't want
-                # this assertion to be turned off when user
-                # requested it
                 res_a = a.fetchall()
                 res_b = b.fetchall()
                 if res_a != res_b:
@@ -51,18 +48,23 @@ def benchmark(backend,
                     for ix, res in enumerate([res_a, res_b]):
                         p = tmpdir.joinpath("{}-{}.tsv".format(qname, ix))
                         with p.resolve().open('w') as outfile:
-                            print("Writing query output to", outfile.name, file=sys.stderr)
+                            print_info("Writing query output to",
+                                       outfile.name,
+                                       file=sys.stderr)
                             write_csv(outfile, res)
                 else:
-                    times_a = timeit.repeat(lambda: all(backend['query']
-                                                        (backend_state, q_a)),
-                                            repeat=number,
-                                            number=1)
-                    times_b = timeit.repeat(lambda: all(backend['query']
-                                                        (backend_state, q_b)),
-                                            repeat=number,
-                                            number=1)
-                    times[qname] = (times_a, times_b)
+                    print_info(
+                        "Query results for {} are equivalent".format(qname),
+                        file=sys.stderr)
+            times_a = timeit.repeat(lambda: all(backend['query']
+                                                (backend_state, q_a)),
+                                    repeat=number,
+                                    number=1)
+            times_b = timeit.repeat(lambda: all(backend['query']
+                                                (backend_state, q_b)),
+                                    repeat=number,
+                                    number=1)
+            times[qname] = (times_a, times_b)
     finally:
         # end DB connection
         assert (backend['end'](backend_state))
@@ -134,8 +136,9 @@ register_backend('sqlite3',
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description='Benchmark two sets of SQL queries against each other.',
-                                     allow_abbrev=False)
+    parser = argparse.ArgumentParser(
+        description='Benchmark two sets of SQL queries against each other.',
+        allow_abbrev=False)
     parser.add_argument('-d',
                         '--database',
                         metavar='DB',
@@ -194,12 +197,12 @@ if __name__ == "__main__":
         'Base file names of the SQL queries. If unspecified, consider all files in DIR-A to be query files'
     )
     args = parser.parse_args()
-    print_info(args)
+    #print_info(args)
     backend = BACKENDS.get(args.database)
     assert (backend is not None)
     dirA, dirB = args.dir_a, args.dir_b
     queries = gather_queries(dirA, dirB, args.queries)  # dict(str, (str, str))
-    print_info(queries)
+    #print_info(queries)
     timings = benchmark(backend,
                         args.db_address,
                         args.db_port,
@@ -207,5 +210,4 @@ if __name__ == "__main__":
                         number=args.number,
                         check_equivalent=args.check_equivalent)
     to_csv(timings, dirA, dirB, args.output)
-
     # python benchmark.py --check-equivalent --db-address ../TPC-H.db --dir-a ../queries/ --dir-b ../gen-queries/ -d sqlite3 q-02.sql
