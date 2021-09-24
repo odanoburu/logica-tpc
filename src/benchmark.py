@@ -22,6 +22,13 @@ def register_backend(name,
     return backend
 
 
+def compare_queries(backend, backend_state, q1, q2):
+    c1 = backend['query'](backend_state, q1)
+    c2 = backend['query'](backend_state, q2)
+    r1 = c1.fetchall()
+    r2 = c2.fetchall()
+    return r1 == r2, r1, r2
+
 def benchmark(backend,
               address,
               port,
@@ -35,36 +42,40 @@ def benchmark(backend,
         for qname, (q_a, q_b) in queries.items():
             print_info("Running query {}".format(qname), file=sys.stderr)
             if check_equivalent:
-                a = backend['query'](backend_state, q_a)
-                b = backend['query'](backend_state, q_b)
-                res_a = a.fetchall()
-                res_b = b.fetchall()
-                if res_a != res_b:
+                same_query_plan, _, _ = compare_queries(backend, backend_state, "EXPLAIN QUERY PLAN " + q_a, "EXPLAIN QUERY PLAN " + q_b)
+                if same_query_plan:
                     print(
-                        "Query results for {} are not the same".format(qname),
-                        file=sys.stderr)
-                    import tempfile
-                    tmpdir = Path(tempfile.gettempdir())
-                    for ix, res in enumerate([res_a, res_b]):
-                        p = tmpdir.joinpath("{}-{}.tsv".format(qname, ix))
-                        with p.resolve().open('w') as outfile:
-                            print_info("Writing query output to",
-                                       outfile.name,
-                                       file=sys.stderr)
-                            write_csv(outfile, res)
+                        "Query plans for {} are the same".format(qname),
+                        file=sys.stderr
+                    )
                 else:
-                    print_info(
-                        "Query results for {} are equivalent".format(qname),
-                        file=sys.stderr)
-            times_a = timeit.repeat(lambda: all(backend['query']
-                                                (backend_state, q_a)),
-                                    repeat=number,
-                                    number=1)
-            times_b = timeit.repeat(lambda: all(backend['query']
-                                                (backend_state, q_b)),
-                                    repeat=number,
-                                    number=1)
-            times[qname] = (times_a, times_b)
+                    same_results, res_a, res_b = compare_queries(backend, backend_state, q_a, q_b)
+                    if not same_results:
+                        print(
+                            "Query results for {} are not the same".format(qname),
+                            file=sys.stderr)
+                        import tempfile
+                        tmpdir = Path(tempfile.gettempdir())
+                        for ix, res in enumerate([res_a, res_b]):
+                            p = tmpdir.joinpath("{}-{}.tsv".format(qname, ix))
+                            with p.resolve().open('w', newline='') as outfile:
+                                print_info("Writing query output to",
+                                           outfile.name,
+                                           file=sys.stderr)
+                                write_csv(outfile, res)
+                    else:
+                        print_info(
+                            "Query results for {} are equivalent".format(qname),
+                            file=sys.stderr)
+                        times_a = timeit.repeat(lambda: all(backend['query']
+                                                            (backend_state, q_a)),
+                                                repeat=number,
+                                                number=1)
+                        times_b = timeit.repeat(lambda: all(backend['query']
+                                                            (backend_state, q_b)),
+                                            repeat=number,
+                                                number=1)
+                        times[qname] = (times_a, times_b)
     finally:
         # end DB connection
         assert (backend['end'](backend_state))
@@ -114,7 +125,7 @@ def to_csv(times, dirA='A', dirB='B', output=None):
 
 def sqlite3_init(address, port):
     import sqlite3
-    print_info("Connecting sqlite3 to:", address)
+    print_info("Connecting sqlite3 to:", address, file=sys.stderr)
     con = sqlite3.connect(address)
     return con
 
