@@ -30,7 +30,7 @@ class Backend:
         return self.query_fn(self.state, q)
 
     def end(self, *args, **kwargs):
-        self.end_fn(self.state, *args, **kwargs)
+        return self.end_fn(self.state, *args, **kwargs)
 
 
 def register_backend(name, backend):
@@ -55,21 +55,26 @@ def benchmark(backend,
               check_equivalent=False):
     # start DB connection
     backend.init(address, port)
+    times = {}
     try:
-        times = {}
         for qname, (q_a, q_b) in queries.items():
             print_info("Running query {}".format(qname), file=sys.stderr)
-            if check_equivalent:
-                same_query_plan, _, _ = compare_queries(
-                    backend, "EXPLAIN QUERY PLAN " + q_a,
-                    "EXPLAIN QUERY PLAN " + q_b)
-                if same_query_plan:
-                    print("Query plans for {} are the same".format(qname),
-                          file=sys.stderr)
-                else:
+            same_query_plan, _, _ = compare_queries(
+                backend, "EXPLAIN QUERY PLAN " + q_a,
+                "EXPLAIN QUERY PLAN " + q_b)
+            if same_query_plan:
+                print("Query plans for {} are the same".format(qname),
+                      file=sys.stderr)
+            else:
+                if check_equivalent:
                     same_results, res_a, res_b = compare_queries(
                         backend, q_a, q_b)
-                    if not same_results:
+                    if same_results:
+                        print_info(
+                            "Query results for {} are equivalent. Timing now…".
+                            format(qname),
+                            file=sys.stderr)
+                    else:
                         print("Query results for {} are not the same".format(
                             qname),
                               file=sys.stderr)
@@ -82,20 +87,14 @@ def benchmark(backend,
                                            outfile.name,
                                            file=sys.stderr)
                                 write_csv(outfile, res)
-                    else:
-                        print_info(
-                            "Query results for {} are equivalent".format(
-                                qname),
-                            file=sys.stderr)
-                        times_a = timeit.repeat(
-                            lambda: all(backend.query(q_a)),
-                            repeat=number,
-                            number=1)
-                        times_b = timeit.repeat(
-                            lambda: all(backend.query(q_b)),
-                            repeat=number,
-                            number=1)
-                        times[qname] = (times_a, times_b)
+                        continue
+                times_a = timeit.repeat(lambda: all(backend.query(q_a)),
+                                        repeat=number,
+                                        number=1)
+                times_b = timeit.repeat(lambda: all(backend.query(q_b)),
+                                        repeat=number,
+                                        number=1)
+                times[qname] = (times_a, times_b)
     finally:
         # end DB connection
         assert (backend.end())
