@@ -5,13 +5,13 @@ TABLES = customer lineitem nation orders partsupp part region supplier
 TABLE_FILES = $(foreach table, $(TABLES), tpch-dbgen/$(table).tbl)
 
 ## Building SQL queries from Logica code
-QUERIES = 01 02 03 04 05 06 07 08 13
+QUERIES = 01 02 03 04 05 06 07 08 09 10 11 12 13 14 16 18 19 21 # Q15 uses views, Q17/Q20/Q22 too slow
 LOGICA_DIR=logica
 QUERY_DIR=logica-sql
 QUERY_BASENAMES = $(foreach query, $(QUERIES), q-$(query).sql)
 QUERY_FILES = $(foreach query_basename, $(QUERY_BASENAMES), $(QUERY_DIR)/$(query_basename))
 LOGICA=/home/odanoburu/sites/logica/logica
-N_TIMES=1 # times to run each query
+N_TIMES=3 # times to run each query
 
 ## TODO: benchmarking variables here
 

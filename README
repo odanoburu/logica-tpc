@@ -18,10 +18,12 @@ Logica equivalents.
        database choice.
   2. To benchmark Logica with =sqlite=, run =make TPC-H.db= to
      generate the =sqlite= database file.
-  3. Run =make -B queries benchmark= to generate the SQL queries from
-     the Logica files and then benchmark those against the original
-     SQL queries from the TPC-H benchmark, generating
-     =build/benchmark.csv= with the data.
+  3. Run =make all= to generate the SQL queries from the Logica files
+     and then benchmark those against the original SQL queries from
+     the TPC-H benchmark, generating =build/benchmark.csv= with the
+     data.
+  4. You can run the =results.awk= script on the output csv to
+     generate the ratio statistic we have reported on our [[https://odanoburu.github.io/research-log/logica-tpc.html][blog post]].
 
 * Adding a new query
 
