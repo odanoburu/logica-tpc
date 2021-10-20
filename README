@@ -2,6 +2,9 @@
 
 Writing the queries of the [[http://tpc.org/tpch/default5.asp][TPC-H]] benchmark using [[https://github.com/EvgSkv/logica][Logica]].
 
+*DISCLAIMER*: this is not a TPC benchmark, but a benchmark derived
+from it in a very loose sense.
+
 The =queries= directory has the TPC-H queries. Those ending in =.sql=
 extension are the original queries, those ending in =.l= are the
 Logica equivalents.
