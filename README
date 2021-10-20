@@ -1,13 +1,18 @@
 # -*- mode: org -*-
 
-Writing the queries of the [[http://tpc.org/tpch/default5.asp][TPC-H]] benchmark using [[https://github.com/EvgSkv/logica][Logica]].
+Writing the queries of the [[http://tpc.org/tpch/default5.asp][TPC-H]] benchmark using [[https://github.com/EvgSkv/logica][Logica]]. See the [[https://odanoburu.github.io/research-log/logica-tpc.html][blog
+post]] for background and more information. Do report any bugs (even
+documentation bugs), and contribute improvements!
 
 *DISCLAIMER*: this is not a TPC benchmark, but a benchmark derived
-from it in a very loose sense.
+from it.
 
-The =queries= directory has the TPC-H queries. Those ending in =.sql=
-extension are the original queries, those ending in =.l= are the
-Logica equivalents.
+The =sql= directory has the SQL queries derived from the TPC-H
+benchmark, while the =logica= directory has our respective Logica
+translations. The =src/benchmark.py= script contains the code used to
+run the benchmark, and =schemas= has the table schemas for the TPC-H
+test database (so far, only a SQLite version).
+
 
 * Reproducing
 
