@@ -5,7 +5,7 @@ TABLES = customer lineitem nation orders partsupp part region supplier
 TABLE_FILES = $(foreach table, $(TABLES), tpch-dbgen/$(table).tbl)
 
 ## Building SQL queries from Logica code
-QUERIES = 01 02 03 04 05 06 07 08 09 10 11 12 13 14 16 18 19 21 # Q15 uses views, Q17/Q20/Q22 too slow
+QUERIES = 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 18 19 21 # Q17/Q20/Q22 too slow
 LOGICA_DIR=logica
 QUERY_DIR=logica-sql
 QUERY_BASENAMES = $(foreach query, $(QUERIES), q-$(query).sql)
@@ -17,6 +17,10 @@ N_TIMES=3 # times to run each query
 
 TPC-H.db: $(TABLE_FILES)
 	./create_db.sh $(TABLES)
+# create view used in Q15 # this is a temporary solution that won't
+# work when/if we add more backends (but then neither will this
+# database building rule!)
+	sqlite3 TPC-H.db -batch -init sql/q-15-pre.sql ".exit"
 
 $(TABLE_FILES): tpch-dbgen/dbgen
 	cd tpch-dbgen && ./dbgen -v -f -s $(SCALE_FACTOR)
